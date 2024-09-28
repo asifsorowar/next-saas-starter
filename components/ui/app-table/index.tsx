@@ -22,6 +22,7 @@ type AppTablePropsType<T> = {
   currentPage: number;
   columnsSort?: string[];
   columnsIgnore?: string[];
+  customColumnComponents?: { [key: string]: any };
 };
 
 const appTable = <T extends Record<string, any>>({
@@ -33,6 +34,7 @@ const appTable = <T extends Record<string, any>>({
   totalData,
   currentPage,
   handlePagination,
+  customColumnComponents,
 }: AppTablePropsType<T>) => {
   const [tableData, setTableData] = useState<T[] | undefined>();
   const [tableColumns, setTableColumns] = useState<Column[] | undefined>();
@@ -114,7 +116,10 @@ const appTable = <T extends Record<string, any>>({
               >
                 {tableColumns?.map((column) => (
                   <td key={column.value + i} className="px-6 py-4">
-                    {item[column.value as keyof T]}
+                    {customColumnComponents &&
+                    customColumnComponents[column.value]
+                      ? customColumnComponents[column.value]
+                      : item[column.value as keyof T]}
                   </td>
                 ))}
               </tr>
