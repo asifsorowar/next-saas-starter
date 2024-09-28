@@ -4,18 +4,21 @@ import React, { useEffect, useState, useRef } from "react";
 import Search from "@/components/ui/search";
 import Filter from "@/components/ui/filter";
 import AppTable from "@/components/ui/app-table";
-import { BlogStatus, BlogResponse } from "@/types/blog.type";
+import { BlogStatus, BlogResponse, BlogType } from "@/types/blog.type";
 import { Button } from "@/components/ui/button";
 import { getBlogsAction } from "@/lib/blogs";
+import { SessionUser } from "@/lib/auth/session";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { logActivity } from "@/lib/logActivity";
+import { ActivityType } from "@/lib/db/schema";
 
 type BlogPropsType = {
   blogsPerPage: number;
-  userPermissions: string[];
+  sessionUser: SessionUser;
 };
 
-const Blog = ({ blogsPerPage, userPermissions }: BlogPropsType) => {
+const Blog = ({ blogsPerPage, sessionUser }: BlogPropsType) => {
   const [blogData, setBlogData] = useState<BlogResponse | undefined>();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const blogColumns = useRef<{ label: string; value: string }[]>();
@@ -42,7 +45,7 @@ const Blog = ({ blogsPerPage, userPermissions }: BlogPropsType) => {
         value: value,
       }));
 
-      if (userPermissions.length > 1) {
+      if (sessionUser.permissions.length > 1) {
         const columns = blogColumns.current;
         columns.push({
           label: "Actions",
@@ -82,6 +85,12 @@ const Blog = ({ blogsPerPage, userPermissions }: BlogPropsType) => {
     });
   };
 
+  const handleBlogDelete = async (blog: BlogType) => {
+    logActivity(sessionUser.teamId, sessionUser.id, ActivityType.DELETE_BLOG);
+
+    alert(`Congratulations, you have access to delete blog '${blog.title}'!`);
+  };
+
   return (
     <div>
       <div className="header mb-3 flex justify-between">
@@ -91,7 +100,7 @@ const Blog = ({ blogsPerPage, userPermissions }: BlogPropsType) => {
             {blogData?.totalCount || 0} entries found
           </p>
         </div>
-        {userPermissions.includes("create") ? (
+        {sessionUser.permissions.includes("create") ? (
           <Button
             asChild
             className="bg-black hover:bg-gray-800 text-white text-sm px-4 py-2 rounded-full"
@@ -123,7 +132,7 @@ const Blog = ({ blogsPerPage, userPermissions }: BlogPropsType) => {
           customColumnComponents={{
             actions: (row) => (
               <div className="flex gap-4">
-                {userPermissions.includes("update") ? (
+                {sessionUser.permissions.includes("update") ? (
                   <p
                     className="hover:text-gray-300 cursor-pointer"
                     onClick={() => router.push(`/dashboard/blogs/${row.id}`)}
@@ -131,14 +140,10 @@ const Blog = ({ blogsPerPage, userPermissions }: BlogPropsType) => {
                     Edit
                   </p>
                 ) : null}
-                {userPermissions.includes("delete") ? (
+                {sessionUser.permissions.includes("delete") ? (
                   <p
                     className="hover:text-red-600 text-red-300 cursor-pointer"
-                    onClick={() =>
-                      alert(
-                        `Congratulations, you have access to delete blog '${row.title}'!`
-                      )
-                    }
+                    onClick={() => handleBlogDelete(row)}
                   >
                     Delete
                   </p>

@@ -9,10 +9,5 @@ export default async function BlogPage() {
 
   if (!session?.user.permissions?.includes("read")) redirect("/dashboard");
 
-  return (
-    <Blogs
-      blogsPerPage={blogsPerPage}
-      userPermissions={session?.user.permissions || []}
-    />
-  );
+  return <Blogs blogsPerPage={blogsPerPage} sessionUser={session.user} />;
 }
