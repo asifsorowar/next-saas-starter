@@ -8,6 +8,7 @@ import { BlogStatus, BlogResponse } from "@/types/blog.type";
 import { Button } from "@/components/ui/button";
 import { getBlogsAction } from "@/lib/blogs";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type BlogPropsType = {
   blogsPerPage: number;
@@ -20,6 +21,8 @@ const Blog = ({ blogsPerPage, userPermissions }: BlogPropsType) => {
   const blogColumns = useRef<{ label: string; value: string }[]>();
   const filterOptions =
     useRef<{ value: BlogStatus | string; label: string }[]>();
+
+  const router = useRouter();
 
   const loadInitialData = async () => {
     const blogResp = await getBlogsAction({ limit: blogsPerPage });
@@ -118,12 +121,12 @@ const Blog = ({ blogsPerPage, userPermissions }: BlogPropsType) => {
           currentPage={currentPage}
           handlePagination={handlePagination}
           customColumnComponents={{
-            actions: (
+            actions: (row) => (
               <div className="flex gap-4">
                 {userPermissions.includes("update") ? (
                   <p
                     className="hover:text-gray-300 cursor-pointer"
-                    onClick={() => console.log("Edit clicked")}
+                    onClick={() => router.push(`/dashboard/blogs/${row.id}`)}
                   >
                     Edit
                   </p>
@@ -131,7 +134,11 @@ const Blog = ({ blogsPerPage, userPermissions }: BlogPropsType) => {
                 {userPermissions.includes("delete") ? (
                   <p
                     className="hover:text-red-600 text-red-300 cursor-pointer"
-                    onClick={() => console.log("Delete clicked")}
+                    onClick={() =>
+                      alert(
+                        `Congratulations, you have access to delete blog '${row.title}'!`
+                      )
+                    }
                   >
                     Delete
                   </p>

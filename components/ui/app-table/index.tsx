@@ -22,7 +22,9 @@ type AppTablePropsType<T> = {
   currentPage: number;
   columnsSort?: string[];
   columnsIgnore?: string[];
-  customColumnComponents?: { [key: string]: any };
+  customColumnComponents?: {
+    [key: string]: (row: T) => any;
+  };
 };
 
 const appTable = <T extends Record<string, any>>({
@@ -118,7 +120,7 @@ const appTable = <T extends Record<string, any>>({
                   <td key={column.value + i} className="px-6 py-4">
                     {customColumnComponents &&
                     customColumnComponents[column.value]
-                      ? customColumnComponents[column.value]
+                      ? customColumnComponents[column.value](item)
                       : item[column.value as keyof T]}
                   </td>
                 ))}
