@@ -5,13 +5,16 @@ import Search from "@/components/ui/search";
 import Filter from "@/components/ui/filter";
 import AppTable from "@/components/ui/app-table";
 import { BlogStatus, BlogResponse } from "@/types/blog.type";
+import { Button } from "@/components/ui/button";
 import { getBlogsAction } from "@/lib/blogs";
+import Link from "next/link";
 
 type BlogPropsType = {
   blogsPerPage: number;
+  userPermissions: string[];
 };
 
-const Blog = ({ blogsPerPage }: BlogPropsType) => {
+const Blog = ({ blogsPerPage, userPermissions }: BlogPropsType) => {
   const [blogData, setBlogData] = useState<BlogResponse | undefined>();
   const [currentPage, setCurrentPage] = useState<number>(1);
   const blogColumns = useRef<{ label: string; value: string }[]>();
@@ -35,6 +38,16 @@ const Blog = ({ blogsPerPage }: BlogPropsType) => {
         label: value.toUpperCase(),
         value: value,
       }));
+
+      if (userPermissions.length > 1) {
+        const columns = blogColumns.current;
+        columns.push({
+          label: "Actions",
+          value: "actions",
+        });
+
+        blogColumns.current = columns;
+      }
     }
 
     setBlogData(blogResp);
@@ -68,11 +81,21 @@ const Blog = ({ blogsPerPage }: BlogPropsType) => {
 
   return (
     <div>
-      <div className="header mb-3">
-        <h3 className="font-medium">Blog Posts</h3>
-        <p className="text-[10px] font-thin">
-          {blogData?.totalCount || 0} entries found
-        </p>
+      <div className="header mb-3 flex justify-between">
+        <div>
+          <h3 className="font-medium">Blog Posts</h3>
+          <p className="text-[10px] font-thin">
+            {blogData?.totalCount || 0} entries found
+          </p>
+        </div>
+        {userPermissions.includes("create") ? (
+          <Button
+            asChild
+            className="bg-black hover:bg-gray-800 text-white text-sm px-4 py-2 rounded-full"
+          >
+            <Link href="/dashboard/blogs/create">Create Post</Link>
+          </Button>
+        ) : null}
       </div>
 
       <div className="filter flex gap-3 mb-3">
@@ -94,6 +117,28 @@ const Blog = ({ blogsPerPage }: BlogPropsType) => {
           dataPerPage={blogsPerPage}
           currentPage={currentPage}
           handlePagination={handlePagination}
+          customColumnComponents={{
+            actions: (
+              <div className="flex gap-4">
+                {userPermissions.includes("update") ? (
+                  <p
+                    className="hover:text-gray-300 cursor-pointer"
+                    onClick={() => console.log("Edit clicked")}
+                  >
+                    Edit
+                  </p>
+                ) : null}
+                {userPermissions.includes("delete") ? (
+                  <p
+                    className="hover:text-red-600 text-red-300 cursor-pointer"
+                    onClick={() => console.log("Delete clicked")}
+                  >
+                    Delete
+                  </p>
+                ) : null}
+              </div>
+            ),
+          }}
         />
       </div>
     </div>
