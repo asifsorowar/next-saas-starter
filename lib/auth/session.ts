@@ -2,6 +2,7 @@ import { compare, hash } from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 import { NewUser } from "@/lib/db/schema";
+import { number } from "zod";
 
 const key = new TextEncoder().encode(process.env.AUTH_SECRET);
 const SALT_ROUNDS = 10;
@@ -17,8 +18,10 @@ export async function comparePasswords(
   return compare(plainTextPassword, hashedPassword);
 }
 
+export type SessionUser = { id: number; permissions: string[]; teamId: number };
+
 type SessionData = {
-  user: { id: number; permissions?: string[] };
+  user: SessionUser;
   expires: string;
 };
 
@@ -44,10 +47,14 @@ export async function getSession() {
   return await verifyToken(session);
 }
 
-export async function setSession(user: NewUser, permissions?: string[]) {
+export async function setSession(
+  user: NewUser,
+  permissions: string[],
+  teamId: number
+) {
   const expiresInOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
   const session: SessionData = {
-    user: { id: user.id!, permissions: permissions },
+    user: { id: user.id!, permissions: permissions!, teamId },
     expires: expiresInOneDay.toISOString(),
   };
 
