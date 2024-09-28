@@ -8,11 +8,9 @@ import {
   users,
   teams,
   teamMembers,
-  activityLogs,
   type NewUser,
   type NewTeam,
   type NewTeamMember,
-  type NewActivityLog,
   ActivityType,
   invitations,
 } from "@/lib/db/schema";
@@ -29,24 +27,7 @@ import {
   validatedAction,
   validatedActionWithUser,
 } from "@/lib/auth/middleware";
-
-async function logActivity(
-  teamId: number | null | undefined,
-  userId: number,
-  type: ActivityType,
-  ipAddress?: string
-) {
-  if (teamId === null || teamId === undefined) {
-    return;
-  }
-  const newActivity: NewActivityLog = {
-    teamId,
-    userId,
-    action: type,
-    ipAddress: ipAddress || "",
-  };
-  await db.insert(activityLogs).values(newActivity);
-}
+import { logActivity } from "@/lib/logActivity";
 
 const signInSchema = z.object({
   email: z.string().email().min(3).max(255),
@@ -85,7 +66,7 @@ export const signIn = validatedAction(signInSchema, async (data, formData) => {
   const { permissions } = await getPermissionsByRole(foundUser.role);
 
   await Promise.all([
-    setSession(foundUser, permissions),
+    setSession(foundUser, permissions, foundTeam?.id as number),
     logActivity(foundTeam?.id, foundUser.id, ActivityType.SIGN_IN),
   ]);
 
@@ -197,7 +178,7 @@ export const signUp = validatedAction(signUpSchema, async (data, formData) => {
   await Promise.all([
     db.insert(teamMembers).values(newTeamMember),
     logActivity(teamId, createdUser.id, ActivityType.SIGN_UP),
-    setSession(createdUser, permissions),
+    setSession(createdUser, permissions, teamId),
   ]);
 
   const redirectTo = formData.get("redirect") as string | null;
