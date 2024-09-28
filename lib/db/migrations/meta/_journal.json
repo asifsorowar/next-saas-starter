@@ -8,6 +8,20 @@
       "when": 1726443359662,
       "tag": "0000_soft_the_anarchist",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1727497436230,
+      "tag": "0003_true_pride",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1727503236956,
+      "tag": "0004_lumpy_vanisher",
+      "breakpoints": true
     }
   ]
 }
